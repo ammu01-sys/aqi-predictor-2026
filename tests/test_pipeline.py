@@ -78,6 +78,10 @@ class TestFetchCombinedDataContract:
             "pm25": 44.0, "pm10": 58.0, "o3": 79.0,
             "no2": 29.0, "so2": 9.0, "co": 490.0,
             "aqi": 130,
+            "station_name": "Lahore Central Ground Station",
+            "station_geo": [31.55, 74.34],
+            "station_distance_km": 0.5,
+            "is_local_station": True,
             "timestamp": datetime.now(timezone.utc),
         }
 
@@ -99,17 +103,22 @@ class TestFetchCombinedDataContract:
             assert key in result, f"Missing key: {key}"
 
     def test_primary_aqi_is_epa_formula_not_aqicn(self):
-        """Primary aqi must be computed from OW pollutants, not AQICN's native value."""
+        """When AQICN is distant (>100km), fallback OpenWeather uses EPA formula."""
         from src.data_fetcher import fetch_combined_data
-        aqicn_native = 999  # Deliberately wrong to detect if it leaks into aqi
+        aqicn_native = 999  # Deliberately distant/wrong
         mock_aqicn = self._make_mock_aqicn()
         mock_aqicn["aqi"] = aqicn_native
+        mock_aqicn["is_local_station"] = False  # Distant station
+        mock_aqicn["station_distance_km"] = 450.0
+
         with patch("src.data_fetcher.fetch_openweather_live_air_pollution", return_value=self._make_mock_ow_pollution()), \
              patch("src.data_fetcher.fetch_aqicn_data", return_value=mock_aqicn), \
              patch("src.data_fetcher.fetch_openweather_data", return_value=self._make_mock_weather()):
             result = fetch_combined_data("Lahore", 31.5497, 74.3436)
-        assert result["aqi"] != aqicn_native, "Primary aqi must NOT be AQICN's native value"
-        assert result["aqicn_reference_aqi"] == aqicn_native, "AQICN native must be stored in aqicn_reference_aqi"
+
+        assert result["aqi"] != aqicn_native, "Primary aqi must NOT use distant AQICN value"
+        assert result["source"] == "OpenWeather Model Grid"
+        assert result["aqicn_reference_aqi"] is None, "Distant AQICN reading must be suppressed"
 
     def test_ow_pollution_failure_falls_back_to_aqicn(self):
         """If OW live air pollution fails, AQICN pollutants must be used as fallback."""

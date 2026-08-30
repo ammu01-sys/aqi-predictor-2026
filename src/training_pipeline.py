@@ -26,50 +26,9 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
-class AQIPredictorModelWrapper:
-    """
-    Production model wrapper artifact ensuring reproducible, leak-free inference.
-    Preserves exact feature ordering, scaler, city encoding, and weather-rejection assertion.
-    Predicts full AQI via baseline + residual delta.
-    """
-    def __init__(self, model, scaler, feature_names, encoding_type, horizon, is_residual=True, metrics=None):
-        self.model = model
-        self.scaler = scaler
-        self.feature_names = feature_names
-        self.encoding_type = encoding_type
-        self.horizon = horizon
-        self.is_residual = is_residual
-        self.metrics = metrics or {}
-        self.created_at = datetime.now(timezone.utc).isoformat()
-
-    def predict(self, df_features: pd.DataFrame) -> np.ndarray:
-        df = df_features.copy()
-        
-        # Enforce safety check: reject weather columns for this model version (decision #10)
-        forbidden_weather = ["temperature", "humidity", "wind_speed", "pressure"]
-        present_weather = [c for c in forbidden_weather if c in df.columns and df[c].notnull().any()]
-        if present_weather:
-            raise ValueError(
-                f"Weather-null mismatch safeguard: Model '{self.horizon}' was trained with zero weather features. "
-                f"Passing live weather columns {present_weather} is strictly rejected until a weather-inclusive retrain."
-            )
-
-        # Align features
-        missing_cols = [c for c in self.feature_names if c not in df.columns]
-        if missing_cols:
-            raise ValueError(f"Missing required feature columns for prediction: {missing_cols}")
-
-        X = df[self.feature_names].copy()
-        
-        if self.scaler is not None:
-            X = self.scaler.transform(X)
-
-        raw_pred = self.model.predict(X)
-        if self.is_residual:
-            # Full AQI = current AQI + predicted delta
-            return df["aqi"].values + raw_pred
-        return raw_pred
-
+# AQIPredictorModelWrapper is defined in its own module so that joblib-pickled
+# artifacts can be loaded from any script (not just this one running as __main__).
+from src.model_wrapper import AQIPredictorModelWrapper  # noqa: F401 — re-exported for back-compat
 
 def dataframe_to_markdown(df: pd.DataFrame) -> str:
     """Pure-Python markdown table generator requiring no external dependencies."""

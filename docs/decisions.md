@@ -105,3 +105,53 @@ The overall R² for Persistence is positive (0.376 on 72h) while **all per-city 
 
 - Weather feature incorporation (paid OpenWeather plan or an alternative free source) is the highest-priority improvement for Phase 5 model iteration.
 - Persistence Baseline is documented as the valid Phase 4 production baseline and will be used as the inference fallback until a weather-inclusive model demonstrably beats it.
+
+---
+
+## 13. Production Serving Decision: Diurnal-Adjusted Persistence Forecasts
+
+In strict alignment with the Phase 4 test-set results (Section 12), the production dashboard does not serve underperforming ML models. Candidate ML models (RidgeCV, XGBoost) remain registered in the Hopsworks Model Registry as validated MLOps artifacts for research and retraining benchmarking, but are excluded from live serving.
+
+### Serving Architecture
+
+The dashboard serves **Persistence Forecasts adjusted for empirical daily patterns**, computed directly from the Feature Store's historical hourly distributions without external ML model calls:
+
+1. **City Baseline**: $\bar{AQI}_{\text{city}}$ is computed from the city's historical records.
+2. **Hourly Profile**: Historical average AQI for each hour-of-day $h \in [0..23]$ is computed: $\mu_{\text{city}}(h)$.
+3. **Diurnal Deviation**: For forecast horizon $t \in [1..72]$, target hour $h_t = (h_{\text{current}} + t) \pmod{24}$.
+   $$\Delta_{\text{diurnal}}(t) = \mu_{\text{city}}(h_t) - \mu_{\text{city}}(h_{\text{current}})$$
+4. **Autoregressive Mean-Reversion**: Multi-day horizons apply smooth relaxation toward the city's long-term baseline:
+   $$w(t) = \exp\left(-\frac{t}{168.0}\right)$$
+   $$\widehat{AQI}(t) = w(t) \cdot AQI_{\text{current}} + (1 - w(t)) \cdot \bar{AQI}_{\text{city}} + \Delta_{\text{diurnal}}(t)$$
+
+### Rationale
+
+- **Statistical Rigor**: Directly reflects the lowest-RMSE strategy identified in Phase 4 benchmarking.
+- **Dynamic & Physical**: Incorporates authentic daily rush-hour/solar dispersion cycles rather than static numbers.
+- **User Transparency**: Explicitly labeled in the UI as *"Persistence Forecast (adjusted for daily patterns)"*, ensuring complete honesty with end users while communicating that air quality inertia dominates absent weather front shifts.
+
+---
+
+## 14. AQICN Physical Ground Sensor Coverage Gap & Spatial Guardrails
+
+### Background & Empirical Discovery
+During system verification (Phase 4/5), direct queries to the AQICN API (`api.waqi.info/feed/geo:{lat};{lon}/`) across all 8 Pakistani cities revealed a critical regional data characteristic:
+- AQICN's API utilizes a **spatial nearest-neighbor fallback** when local stations are offline or unlisted.
+- Because public reporting ground sensors in Pakistan are sparse, queries for Pakistani coordinates resolved to distant cross-border physical stations:
+  - **Lahore, Islamabad, Faisalabad, Rawalpindi, Gujranwala** resolved to Station ID `11267` (*Pooth Khurd, Bawana, Delhi, India* — ~300–450 km away).
+  - **Karachi and Multan** resolved to Station ID `10120` (*Bramprakash Ayurvedic Hospital, Najafgarh, Delhi, India* — ~700–1,100 km away).
+  - **Peshawar** resolved to Station ID `11895` (*Dushanbe US Embassy, Tajikistan* — ~550 km away).
+
+### System Policy & Technical Safeguards
+
+1. **OpenWeather Gridded CTM Ground Truth (Primary Metric)**:
+   - Re-affirms Decision #8: OpenWeather's gridded chemical transport model (with US EPA piecewise index calculation) is the sole authoritative source for `aqi` and individual pollutant concentrations (`pm25`, `pm10`, `o3`, `no2`, `so2`, `co`). This guarantees localized, coordinate-accurate air quality data for each city regardless of ground monitor uptime.
+
+2. **100 km Distance Guardrail (`src/data_fetcher.py`)**:
+   - `fetch_aqicn_data` now extracts the resolved station's geographic coordinates (`geo: [lat, lon]`) and computes the Great-Circle Haversine distance from the query city.
+   - If `station_distance_km > 100.0`, the station is flagged as non-local (`is_local_station = False`).
+   - In `fetch_combined_data`, non-local AQICN observations are suppressed (`combined["aqicn_reference_aqi"] = None`) to prevent distant foreign sensor measurements from polluting the Feature Store.
+
+3. **Dashboard Labeling Policy**:
+   - UI stat pills are explicitly relabeled from *"Local Station Check"* to *"Ground Monitor Ref"* (with tooltip indicating validated `<100km` radius) to maintain complete transparency with end users. Distant stations are never presented as local ground truth.
+
