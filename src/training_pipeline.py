@@ -95,7 +95,14 @@ def load_dataset_from_hopsworks():
     df["timestamp"] = pd.to_datetime(df["timestamp"], utc=True)
     df = df.sort_values(by=["city", "timestamp"]).reset_index(drop=True)
     
-    logger.info(f"Loaded dataset of shape {df.shape} from Feature Store.")
+    # Filter out recent live hourly rows that do not have future targets populated yet
+    initial_len = len(df)
+    df = df.dropna(subset=["target_24h", "target_48h", "target_72h"]).copy().reset_index(drop=True)
+    dropped_rows = initial_len - len(df)
+    if dropped_rows > 0:
+        logger.info(f"Filtered out {dropped_rows} recent live rows with unobserved future targets.")
+
+    logger.info(f"Loaded training dataset of shape {df.shape} from Feature Store.")
     
     # Assert timestamp alignment precondition across cities
     cities = df["city"].unique().tolist()
