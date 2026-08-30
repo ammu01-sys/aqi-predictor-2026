@@ -1,0 +1,41 @@
+name: Daily Training Pipeline
+
+on:
+  schedule:
+    # Runs daily at midnight UTC
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+    # Allows manual trigger from the GitHub Actions UI for testing
+
+jobs:
+  run-training-pipeline:
+    name: Retrain & Evaluate AQI Forecast Models
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run training pipeline
+        env:
+          HOPSWORKS_API_KEY: ${{ secrets.HOPSWORKS_API_KEY }}
+          HOPSWORKS_PROJECT_NAME: ${{ secrets.HOPSWORKS_PROJECT_NAME }}
+        run: python src/training_pipeline.py
+
+      - name: Upload model comparison report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: model-comparison-${{ github.run_id }}
+          path: docs/model_comparison.md
+          retention-days: 30

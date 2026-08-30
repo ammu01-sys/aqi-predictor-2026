@@ -1,0 +1,33 @@
+# Data fetching & handling
+requests
+python-dotenv
+pandas
+numpy
+pyyaml
+
+# Feature Store & Model Registry
+hopsworks
+confluent-kafka
+# Note: On Windows without Microsoft C++ Build Tools, install pyjks with `--no-deps` to avoid the twofish build failure.
+# Then run: `pip install javaobj-py3 pyasn1 pyasn1-modules pycryptodomex`
+pyjks
+
+
+
+# Machine Learning & Modeling
+scikit-learn
+xgboost
+# tensorflow  # Optional: uncomment if deep learning model uses TensorFlow
+# torch       # Optional: uncomment if deep learning model uses PyTorch
+
+# Explainability & Visualizations
+shap
+matplotlib
+seaborn
+
+# Dashboard
+streamlit
+
+# Development / Notebooks
+ipykernel
+pytest
