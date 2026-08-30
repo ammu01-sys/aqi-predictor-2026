@@ -18,7 +18,7 @@ load_dotenv()
 
 # Configure page
 st.set_page_config(
-    page_title="HawaWatch PK — Pakistan AQI Forecasting System",
+    page_title="AQI Predictor — Pakistan Air Quality Forecasting System",
     page_icon="🍃",
     layout="wide",
     initial_sidebar_state="collapsed"
@@ -359,10 +359,10 @@ with col_nav_l:
         <span style="font-size: 2.2rem;">🍃</span>
         <div>
             <div class="display-font" style="font-size: 1.9rem; font-weight: 800; line-height: 1.1; color: #ffffff;">
-                HawaWatch <span style="color: #00E400;">PK</span>
+                AQI <span style="color: #00E400;">Predictor</span>
             </div>
             <div style="font-size: 0.85rem; color: #94a3b8; font-weight: 500;">
-                Production Air Quality Intelligence & Multi-Day Forecasting Engine
+                Pakistan Air Quality Intelligence & Multi-Day Forecasting Engine
             </div>
         </div>
     </div>
@@ -893,7 +893,7 @@ st.markdown("<div style='height: 32px;'></div>", unsafe_allow_html=True)
 st.markdown(f"""
 <div style="padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.08); display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: #64748b;">
     <div>
-        <b>HawaWatch PK</b> • Serverless MLOps Platform • Hopsworks Feature Store & Model Registry
+        <b>AQI Predictor</b> • Serverless MLOps Platform • Hopsworks Feature Store & Model Registry
     </div>
     <div>
         Data Source: OpenWeather Chemical Transport & In-Situ EPA Calculations • Last Ingested: {current_ts_utc.strftime('%Y-%m-%d %H:%M UTC')}

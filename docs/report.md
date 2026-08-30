@@ -1,4 +1,4 @@
-# HawaWatch PK — Production Air Quality Forecasting System
+# Pakistan AQI Predictor — Production Air Quality Forecasting System
 ## Comprehensive Technical & MLOps Final Report
 
 **Author**: Antigravity AI Engineering Team  
@@ -12,7 +12,7 @@
 
 Air quality across Pakistan's urban centers presents an acute public health and environmental crisis. Metropolitan regions such as Lahore, Karachi, Faisalabad, and Peshawar regularly experience severe seasonal smog episodes with particulate matter concentrations far exceeding World Health Organization (WHO) and US Environmental Protection Agency (EPA) safe thresholds. 
 
-**HawaWatch PK** is an end-to-end, automated, serverless MLOps system that continuously ingests atmospheric pollutant telemetry across 8 Pakistani metropolitan hubs, computes standardized US EPA Air Quality Index (AQI) values, engineers leakage-free temporal and rolling features, trains multi-horizon predictive models (24h, 48h, 72h), and serves live forecasts and explainability insights through an interactive web dashboard.
+**Pakistan AQI Predictor** is an end-to-end, automated, serverless MLOps system that continuously ingests atmospheric pollutant telemetry across 8 Pakistani metropolitan hubs, computes standardized US EPA Air Quality Index (AQI) values, engineers leakage-free temporal and rolling features, trains multi-horizon predictive models (24h, 48h, 72h), and serves live forecasts and explainability insights through an interactive web dashboard.
 
 ---
 
