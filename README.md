@@ -12,11 +12,8 @@ Built for the **10Pearls SHINE Internship, Data Sciences Track**. For the full t
 
 ## 🖥️ Dashboard Preview
 
-![AQI Predictor Dashboard Overview](docs/dashboard_overview.png)
+![AQI Predictor Live Dashboard](docs/dashboard_overview.png)
 *Fig. 1 — Streamlit live view showing the current AQI hero card (Lahore), 6 provenance badges, 3-day persistence forecast cards, and 72-hour expected air quality outlook.*
-
-![AQI Predictor Pollutants and Trends](docs/dashboard_details.png)
-*Fig. 2 — Physical pollutant concentration tiles (PM2.5, PM10, O3, NO2, SO2, CO), historical 7-day trend curve, and plain-language physical driver explainability panel.*
 
 ---
 

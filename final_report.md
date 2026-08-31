@@ -382,4 +382,4 @@ Against the original brief's final-submission checklist:
 
 ---
 
-*Pearls AQI Predictor · 10Pearls SHINE Internship · Deadline: Sept 4, 2026*
+*Pearls AQI Predictor · 10Pearls SHINE Internship · Deadline: Sept 2, 2026*
